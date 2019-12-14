@@ -1,9 +1,9 @@
 # publish-subscribe
 
 This project implements basic Publish-Subscribe communication protocol on TCP/IP layer. Client and Server console apllications were developed in C.
-Server opens TCP socket on localhost:port and waits for connections.
-Clients are connecting to the server, subscribing to topics and publishing topic releated information (see deployment).
-Server takes care of client subscriptions and informs them as soon as topic of interest is published.
+Server opens TCP socket on `localhost:port` and waits for connections.
+Clients are connecting to the server, subscribing to topics and publishing topic releated information (see Client Commands).
+Server takes care of clients and their subscriptions, and informs them as soon as a topic of interest is published.
 
 ## Getting Started
 
@@ -46,15 +46,16 @@ $ make clean
 ## Running the tests
 
 To test publish-subscribe communication run server and multiple clinets.
-Commands to run server and client
+
+How to start server and clients:
 
 First tab:
 ```sh
-./bin/server 8080
+$ ./bin/server 8080
 ```
 Second and other tabs:
 ```sh
-./bin/client
+$ ./bin/client
 ```
 Once server is started, clients can connect to it.
 ### Client Commands
