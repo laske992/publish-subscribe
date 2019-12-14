@@ -15,7 +15,6 @@
 #include "cli.h"
 #include "subscribe.h"
 
-extern struct cli_list_t *cli_head;
 
 /* Static functions */
 static int server_setup_tcp_socket(int, struct sockaddr_in *, int);
@@ -31,7 +30,7 @@ int main(int argc, char **argv)
     int socket_fd; /* Socket file descriptor */
     int cli_fd, len;
     int port; /* Server listening port */
-    struct cli_list_t *cli;
+    struct cli_list_t *cli = NULL;
     struct sockaddr_in server_addr; /* Server address */
     struct sockaddr_in cli_addr;
     int nfds;
@@ -82,7 +81,7 @@ int main(int argc, char **argv)
         {
             continue; /* No clients in the list */
         }
-        list_for_each(cli_head, cli)
+        while ((cli = cli_get_next(cli)))
         {
             /* IO operation on some other socket */
             if (FD_ISSET(cli->fd, &readfds))
@@ -243,7 +242,7 @@ server_publish_handle(int fd, char *publish_data)
 static void
 server_set_fd_flags(int fd, fd_set *readfds, int *nfds)
 {
-    struct cli_list_t *entry;
+    struct cli_list_t *cli = NULL;
     FD_ZERO(readfds);
     FD_SET(fd, readfds);
     FD_SET(STDIN_FILENO, readfds);
@@ -251,15 +250,15 @@ server_set_fd_flags(int fd, fd_set *readfds, int *nfds)
     *nfds = fd;
     if (!cli_list_is_empty())
     {
-        list_for_each(cli_head, entry)
+        while ((cli = cli_get_next(cli)))
         {
-            if (entry->fd > 0)
+            if (cli->fd > 0)
             {
-                FD_SET(entry->fd, readfds);
+                FD_SET(cli->fd, readfds);
             }
-            if (entry->fd > *nfds)
+            if (cli->fd > *nfds)
             {
-                *nfds = entry->fd;
+                *nfds = cli->fd;
             }
         }
     }

@@ -64,6 +64,16 @@ cli_list_find_entry(int fd)
     return cli;
 }
 
+struct cli_list_t *
+cli_get_next(struct cli_list_t *cli)
+{
+    if (!cli)
+    {
+        return cli_head;
+    }
+    return cli->next;
+}
+
 char *
 cli_list_get_name(int fd)
 {
