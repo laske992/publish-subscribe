@@ -77,13 +77,8 @@ int main(int argc, char **argv)
             cli_list_add_entry(cli_fd);
         }
         /* Check if any client is active */
-        if (cli_list_is_empty())
-        {
-            continue; /* No clients in the list */
-        }
         while ((cli = cli_get_next(cli)))
         {
-            /* IO operation on some other socket */
             if (FD_ISSET(cli->fd, &readfds))
             {
                 memset(&recv_msg, 0, sizeof recv_msg);
