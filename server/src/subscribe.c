@@ -181,7 +181,7 @@ save_topic(char *topic)
     {
         return topic_id;    /* Topic already exits */
     }
-    vacant_topic_id = get_vacant_topic_id(topic);
+    vacant_topic_id = get_vacant_topic_id();
     if (vacant_topic_id > 31)
     {
         return MAX_TOPIC_REACHED;

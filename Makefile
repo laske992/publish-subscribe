@@ -2,7 +2,7 @@
 GCC	= gcc
 LD	= gcc
 GCCFLAGS = -std=c99 -Wall -Wextra -Wshadow -Werror -Wl,-z,relro,-z,now -g
-GCCFLAGS += -fstack-protector-strong
+GCCFLAGS += -fstack-protector-strong -pedantic-errors
 
 #The Directories, Source, Includes, Objects, Binary and Resources
 BUILDDIR	= build
