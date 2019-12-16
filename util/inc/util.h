@@ -1,6 +1,7 @@
 #ifndef __UTIL_FILE_H
 #define __UTIL_FILE_H
 
+#define MAX_INPUT_LEN 1024
 #define SET_BIT(x, bit)    (x) |= 1 << (bit)
 #define CLEAR_BIT(x, bit)  (x) &= ~(1 << (bit))
 #define IS_BIT_SET(x, bit) (x) & (1 << (bit))

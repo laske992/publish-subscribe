@@ -6,7 +6,6 @@
 #include "list.h"
 #include "cli.h"
 
-#define MAX_TOPIC_REACHED 32
 
 struct subscribe_list_t
 {
@@ -14,8 +13,8 @@ struct subscribe_list_t
     struct subscribe_list_t *next;
 };
 
-char topic_array[32][30];
-struct subscribe_list_t *subs_list_head[32];
+char topic_array[MAX_TOPIC][MAX_TOPIC_LEN + 1];
+struct subscribe_list_t *subs_list_head[MAX_TOPIC];
 
 /* Static functions */
 static struct subscribe_list_t *subscribe_find_entry(uint8_t, struct cli_list_t *);
@@ -37,7 +36,7 @@ publish_all_subscribers(int publisher, char *topic, char *msg)
 {
     uint8_t topic_id;
     struct subscribe_list_t *entry = NULL;
-    char data[1024] = {0};
+    char data[MAX_INPUT_LEN + 1] = {0};
     topic_id = get_topic_id(topic);
     snprintf(data, sizeof data, "%s:%s", topic, msg);
     list_for_each(subs_list_head[topic_id], entry)
@@ -66,7 +65,7 @@ subscribe_handle(int fd, char *topic)
         return;
     }
     topic_id = save_topic(topic);
-    if (topic_id >= MAX_TOPIC_REACHED)
+    if (topic_id >= MAX_TOPIC)
     {
         printf("Maximum (32) topics reached...discarding %s's request\n", cli->name);
         return;
@@ -87,6 +86,10 @@ unsubscribe_handle(int fd, char *topic)
     uint8_t topic_id;
     struct subscribe_list_t *entry, *prev;
     topic_id = get_topic_id(topic);
+    if (topic_id >= MAX_TOPIC)
+    {
+        return; /* Client is not subscribe to this topic */
+    }
     list_for_each(subs_list_head[topic_id], entry)
     {
         if (entry->cli->fd == fd)
@@ -110,7 +113,7 @@ void
 subscribe_list_unlink_entry(struct cli_list_t *cli)
 {
     uint8_t i;
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < MAX_TOPIC; i++)
     {
         if (IS_BIT_SET(cli->subscribe_mask, i))
         {
@@ -174,20 +177,21 @@ save_topic(char *topic)
 {
     uint8_t topic_id;
     uint8_t len;
-    uint8_t vacant_topic_id = 32;
+    uint8_t vacant_topic_id;
 
     topic_id = get_topic_id(topic);
-    if (topic_id < 32)
+    if (topic_id < MAX_TOPIC)
     {
         return topic_id;    /* Topic already exits */
     }
     vacant_topic_id = get_vacant_topic_id();
     if (vacant_topic_id > 31)
     {
-        return MAX_TOPIC_REACHED;
+        return MAX_TOPIC;
     }
     len = sizeof(topic_array[0]) - 1;
     strncpy(topic_array[vacant_topic_id], topic, len);
+    *(topic_array[vacant_topic_id] + len) = '\0';
     return vacant_topic_id;
 }
 
@@ -195,7 +199,7 @@ static uint8_t
 get_topic_id(char *topic)
 {
     uint8_t i;
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < MAX_TOPIC; i++)
     {
         if (strncmp(topic_array[i], topic, sizeof(topic_array[i])))
         {
@@ -213,7 +217,7 @@ static uint8_t
 get_vacant_topic_id(void)
 {
     uint8_t i;
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < MAX_TOPIC; i++)
     {
         if (!topic_array[i][0])
         {

@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     int nfds;
     int activity;
     int recv_count;      /* Value received from socket */
-    char recv_msg[1024]; /* Message received from socket */
+    char recv_msg[MAX_INPUT_LEN + 1]; /* Message received from socket */
     fd_set readfds;
 
     /* Check input arguments */
@@ -73,8 +73,14 @@ int main(int argc, char **argv)
         if (FD_ISSET(socket_fd, &readfds))
         {
             cli_fd = server_accept_connection(socket_fd, &cli_addr, len);
-            /* save client to the list */
-            cli_list_add_entry(cli_fd);
+            if (cli_get_count() <= MAX_CLIENT)
+            {
+                /* save client to the list */
+                cli_list_add_entry(cli_fd);
+            } else {
+                printf("Discarding new connection...\n");
+                close(cli_fd);
+            }
         }
         /* Check if any client is active */
         while ((cli = cli_get_next(cli)))
@@ -219,7 +225,7 @@ server_publish_handle(int fd, char *publish_data)
     char *end;
     char *data;
     int len;
-    char topic[30] = {0};
+    char topic[MAX_TOPIC_LEN + 1] = {0};
 
     end = strchr(publish_data, ':');
     if (!end)

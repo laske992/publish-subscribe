@@ -33,8 +33,7 @@ typedef enum {
 struct cli_args {
     char client_name[20];
     size_t port;
-    char publish_topic[30]; /* Topic to publish */
-    char topic[30];      /* Subscribe topic */
+    char topic[30];
     char data[512];
 };
 
@@ -51,7 +50,7 @@ int main()
     int socket_fd = -1;      /* Socket file descriptor */
     command_type_t cmd;
     struct cli_args cli_args;
-    char buf[1024] = {0};
+    char buf[MAX_INPUT_LEN + 1] = {0};
     int len;
     fd_set readfds;
     int maxfd;
@@ -102,21 +101,18 @@ int main()
             }
             else if (cmd == PUBLISH)
             {
-                /* TODO */
-                len = snprintf(buf, sizeof buf, "PUBLISH:%s:%s", cli_args.publish_topic, cli_args.data);
+                len = snprintf(buf, sizeof buf, "PUBLISH:%s:%s", cli_args.topic, cli_args.data);
                 cli_send(socket_fd, buf, len);
             }
             else if (cmd == SUBSCRIBE)
             {
                 len = snprintf(buf, sizeof buf, "SUBSCRIBE:%s", cli_args.topic);
                 cli_send(socket_fd, buf, len);
-                /* TODO */
             }
             else if (cmd == UNSUBSCRIBE)
             {
                 len = snprintf(buf, sizeof buf, "UNSUBSCRIBE:%s", cli_args.topic);
                 cli_send(socket_fd, buf, len);
-                /* TODO */
             }
             else
             {
@@ -147,7 +143,7 @@ cli_parse_command(char *input, struct cli_args *cli_args)
             goto err;
         }
         cli_args->port = atoi(argv[1]);
-        memmove(cli_args->client_name, argv[2], sizeof cli_args->client_name);
+        memmove(cli_args->client_name, argv[2], sizeof(cli_args->client_name) - 1);
         return CONNECT;
     }
     if (C(CMD_DISCONNECT, argv[0]))
@@ -166,8 +162,8 @@ cli_parse_command(char *input, struct cli_args *cli_args)
             printf("Command PUBLISH: Wrong number of parameters...\n");
             goto err;
         }
-        memmove(cli_args->publish_topic, argv[1], sizeof cli_args->publish_topic);
-        memmove(cli_args->data, argv[2], sizeof cli_args->data);
+        memmove(cli_args->topic, argv[1], sizeof(cli_args->topic) - 1);
+        memmove(cli_args->data, argv[2], sizeof(cli_args->data) - 1);
         return PUBLISH;
     }
     if (C(CMD_SUBSCIBE, argv[0]))
@@ -177,7 +173,7 @@ cli_parse_command(char *input, struct cli_args *cli_args)
             printf("Command SUBSCRIBE: Wrong number of parameters...\n");
             goto err;
         }
-        memmove(cli_args->topic, argv[1], sizeof cli_args->topic);
+        memmove(cli_args->topic, argv[1], sizeof(cli_args->topic) - 1);
         return SUBSCRIBE;
     }
     if (C(CMD_UNSUBSCRIBE, argv[0]))
@@ -187,7 +183,7 @@ cli_parse_command(char *input, struct cli_args *cli_args)
             printf("Command UNSUBSCRIBE: Wrong number of parameters...\n");
             goto err;
         }
-        memmove(cli_args->topic, argv[1], sizeof cli_args->topic);
+        memmove(cli_args->topic, argv[1], sizeof(cli_args->topic) - 1);
         return UNSUBSCRIBE;
     }
     err:

@@ -8,6 +8,11 @@
 
 
 struct cli_list_t *cli_head = NULL;
+uint8_t cli_count;
+
+/* Static functions */
+static void cli_inc_count();
+static void cli_dec_count();
 
 /*
  * @brief: Check if list is empty
@@ -32,6 +37,7 @@ cli_list_add_entry(int fd)
     memset(entry, 0, sizeof(struct cli_list_t));
     entry->fd = fd;
     list_add(cli_head, entry, pos);
+    cli_inc_count();
 }
 
 /*
@@ -42,6 +48,7 @@ cli_list_unlink(struct cli_list_t *cli)
 {
     struct cli_list_t *prev;
     list_unlink(cli_head, cli, prev);
+    cli_dec_count();
     free(cli);
 }
 
@@ -115,5 +122,29 @@ cli_update_subscription_mask(struct cli_list_t *cli, uint8_t topic_id, bool subs
     else
     {
         CLEAR_BIT(cli->subscribe_mask, topic_id);
+    }
+}
+
+/* Get current number of clients */
+uint8_t
+cli_get_count(void)
+{
+    return cli_count;
+}
+
+/* Increment number of clients */
+static void
+cli_inc_count(void)
+{
+    cli_count++;
+}
+
+/* Decrement number of clients */
+static void
+cli_dec_count(void)
+{
+    if (cli_get_count())
+    {
+        cli_count--;
     }
 }
