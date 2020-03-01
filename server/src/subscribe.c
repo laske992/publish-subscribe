@@ -38,7 +38,7 @@ publish_all_subscribers(int publisher, char *topic, char *msg)
     struct subscribe_list_t *entry = NULL;
     char data[MAX_INPUT_LEN + 1] = {0};
     topic_id = get_topic_id(topic);
-    snprintf(data, sizeof data, "%s:%s", topic, msg);
+    snprintf(data, sizeof data, "%s:%s%c", topic, msg, CMD_TERMINATE_CHAR);
     list_for_each(subs_list_head[topic_id], entry)
     {
         if (entry->cli->fd == publisher)

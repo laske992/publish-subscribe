@@ -39,6 +39,7 @@ struct cli_args {
 
 /* Static functions */
 static void parse_server_message(char*);
+static void split_server_message(char *);
 static command_type_t cli_parse_command(char *, struct cli_args *);
 static int cli_connect(size_t);
 static void cli_send(int, char *, int);
@@ -68,6 +69,7 @@ int main()
         select(maxfd + 1, &readfds, NULL, NULL, NULL);
         if (FD_ISSET(socket_fd, &readfds))
         {
+            /* Message from server */
             memset(&buf, 0, sizeof buf);
             recv_count = read(socket_fd, buf, sizeof(buf) - 1);
             if (recv_count <= 0)
@@ -78,13 +80,15 @@ int main()
             }
             else
             {
-                parse_server_message(buf);
+                split_server_message(buf);
             }
         }
         if (FD_ISSET(STDIN_FILENO, &readfds))
         {
+            /* User input */
             memset(&buf, 0, sizeof buf);
-            read(STDIN_FILENO, buf, sizeof(buf) - 1);
+            read(STDIN_FILENO, buf, sizeof(buf) - 2); /* One char for terminate */
+            terminate_command(buf);
             remove_trailing_chars(buf);
             cmd = cli_parse_command(buf, &cli_args);
 
@@ -195,13 +199,28 @@ parse_server_message(char *buf)
 {
     char *topic;
     char *data, *end;
-    remove_trailing_chars(buf);
     data = end = strchr(buf, ':');
     topic = buf;
     *end = '\0';
     if (++data)
     {
         printf("[Message] Topic:<%s> Data:<%s>\n", topic, data);
+    }
+}
+
+static void
+split_server_message(char *msg)
+{
+    char *input = NULL;
+    char delimiter[2] = {0};
+    remove_trailing_chars(msg);
+    *delimiter = CMD_TERMINATE_CHAR;
+    input = strtok(msg, delimiter);
+    while (input != NULL)
+    {
+        parse_server_message(input);
+        /* Get next input */
+        input = strtok(NULL, delimiter);
     }
 }
 

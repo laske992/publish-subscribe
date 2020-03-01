@@ -21,6 +21,7 @@ static int server_setup_tcp_socket(int, struct sockaddr_in *, int);
 static int server_accept_connection(int, struct sockaddr_in *, int);
 static void server_close_connection(struct cli_list_t *, struct sockaddr_in *, int);
 static void server_parse_recv_msg(int, char *);
+static void server_parse_recv_msg1(int, char *);
 static void server_publish_handle(int, char *);
 static void server_set_fd_flags(int, fd_set *, int *);
 
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
                 {
                     /* Handle received message */
                     remove_trailing_chars(recv_msg);
-                    server_parse_recv_msg(cli->fd, recv_msg);
+                    server_parse_recv_msg1(cli->fd, recv_msg);
                 }
             }
         }
@@ -216,6 +217,21 @@ server_parse_recv_msg(int fd, char *msg)
     else if (!(strncmp(msg, "UNSUBSCRIBE", len)))
     {
         unsubscribe_handle(fd, ptr);
+    }
+}
+
+static void
+server_parse_recv_msg1(int fd, char *msg)
+{
+    char *cmd = NULL;
+    char delimiter[2] = {0};
+    *delimiter = CMD_TERMINATE_CHAR;
+    cmd = strtok(msg, delimiter);
+    while (cmd != NULL)
+    {
+        server_parse_recv_msg(fd, cmd);
+        /* Get next command */
+        cmd = strtok(NULL, delimiter);
     }
 }
 
