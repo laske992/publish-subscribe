@@ -85,10 +85,11 @@ unsubscribe_handle(int fd, char *topic)
 {
     uint8_t topic_id;
     struct subscribe_list_t *entry, *prev;
+    struct subscribe_list_t *remove_entry = NULL;
     topic_id = get_topic_id(topic);
     if (topic_id >= MAX_TOPIC)
     {
-        return; /* Client is not subscribe to this topic */
+        return; /* Client is not subscribed to this topic */
     }
     list_for_each(subs_list_head[topic_id], entry)
     {
@@ -96,12 +97,18 @@ unsubscribe_handle(int fd, char *topic)
         {
             cli_update_subscription_mask(entry->cli, topic_id, false);
             list_unlink(subs_list_head[topic_id], entry, prev);
+            remove_entry = entry;
             printf("%s unsubscribed from: <%s>\n", entry->cli->name, topic);
         }
     }
     if (list_is_empty(subs_list_head[topic_id]))
     {
         forget_topic(topic_id);
+    }
+    if (remove_entry != NULL)
+    {
+        /* Free memory occupied in subscription list */
+        free(remove_entry);
     }
 }
 
